@@ -1,5 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 use std::io::Write;
+use std::cell::RefCell;
 
 type Input = f64;
 type Output = Input;
@@ -15,16 +16,19 @@ struct Cli {
 enum Commands {
     Add(Arguments),
     Sub(Arguments),
+    Acc,
     Exit,
 }
 
 #[derive(Debug, Args)]
 struct Arguments {
     lhs: Input,
-    rhs: Input,
+    rhs: Option<Input>,
 }
 
 fn main() {
+    let acc: RefCell<Output> = RefCell::new(Default::default());
+
     loop {
         let args = read();
         let args = args.trim().split(' ');
@@ -43,14 +47,28 @@ fn main() {
                         ops = a;
                         func = sub;
                     }
+                    Commands::Acc => {
+                        println!("Accumulator: {}", acc.borrow());
+                        continue;
+                    }
                     Commands::Exit => {
                         println!("Exiting...");
                         break;
                     }
                 }
                 
-                let answer = func(ops.lhs, ops.rhs);
-                println!("Answer: {answer}");
+                let mut acc = acc.borrow_mut();
+                
+                *acc = match ops.rhs {
+                    Some(val) => {
+                        func(ops.lhs, val)
+                    }
+                    None => {
+                        func(*acc, ops.lhs)
+                    }
+                };
+
+                println!("Answer: {acc}");
             }
             Err(err) => {
                 println!("{err}");
