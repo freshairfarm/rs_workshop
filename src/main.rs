@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-type Input = f32;
+type Input = i8;
 type Output = Input;
 
 #[derive(Debug, Parser)]
@@ -41,11 +41,13 @@ fn main() {
     println!("Answer: {answer}");
 }
 
-fn add(x: Input, y: Input) -> Output {
+fn add<T,R>(x: T, y: T) -> R
+    where T: std::ops::Add<Output = R> {
     x + y
 }
 
-fn sub(x: Input, y: Input) -> Output {
+fn sub<T,R>(x: T, y: T) -> R
+    where T: std::ops::Sub<Output = R> {
     x - y
 }
 
@@ -55,10 +57,10 @@ mod test {
 
     #[test]
     fn it_adds() {
-        const EXPECTED: Output = 50.;
+        const EXPECTED: Output = 0;
 
-        let x = 25.;
-        let y = 25.;
+        let x: Input= 25;
+        let y: Input = 25;
         
         let actual = add(x, y);
 
@@ -67,10 +69,10 @@ mod test {
 
     #[test]
     fn it_subs() {
-        const EXPECTED: Output = -50.;
+        const EXPECTED: Output = -50;
 
-        let x = -25.;
-        let y = 25.;
+        let x: Input = -25;
+        let y: Input = 25;
 
         let actual = sub(x, y);
 
