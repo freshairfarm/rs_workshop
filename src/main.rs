@@ -48,3 +48,32 @@ fn add(x: Input, y: Input) -> Output {
 fn sub(x: Input, y: Input) -> Output {
     x - y
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_adds() {
+        const EXPECTED: Output = 50.;
+
+        let x = 25.;
+        let y = 25.;
+        
+        let actual = add(x, y);
+
+        assert_eq!(EXPECTED, actual);
+    }
+
+    #[test]
+    fn it_subs() {
+        const EXPECTED: Output = -50.;
+
+        let x = -25.;
+        let y = 25.;
+
+        let actual = sub(x, y);
+
+        assert_eq!(EXPECTED, actual);
+    }
+}
