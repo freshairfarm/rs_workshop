@@ -1,9 +1,11 @@
 use clap::{Args, Parser, Subcommand};
+use std::io::Write;
 
-type Input = i8;
+type Input = f64;
 type Output = Input;
 
 #[derive(Debug, Parser)]
+#[command(multicall = true)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -13,6 +15,7 @@ struct Cli {
 enum Commands {
     Add(Arguments),
     Sub(Arguments),
+    Exit,
 }
 
 #[derive(Debug, Args)]
@@ -22,23 +25,38 @@ struct Arguments {
 }
 
 fn main() {
-    let cli = Cli::parse();
+    loop {
+        let args = read();
+        let args = args.trim().split(' ');
+        let parsed = Cli::try_parse_from(args);
 
-    let args;
-    let func: fn(Input, Input) -> Output;
-    match cli.command {
-        Commands::Add(a) => {
-            args = a;
-            func = add;
-        }
-        Commands::Sub(a) => {
-            args = a;
-            func = sub;
+        match parsed {
+            Ok(parsed) => {
+                let ops;
+                let func: fn(Input, Input) -> Output;
+                match parsed.command {
+                    Commands::Add(a) => {
+                        ops = a;
+                        func = add;
+                    }
+                    Commands::Sub(a) => {
+                        ops = a;
+                        func = sub;
+                    }
+                    Commands::Exit => {
+                        println!("Exiting...");
+                        break;
+                    }
+                }
+                
+                let answer = func(ops.lhs, ops.rhs);
+                println!("Answer: {answer}");
+            }
+            Err(err) => {
+                println!("{err}");
+            }
         }
     }
-
-    let answer = func(args.lhs, args.rhs);
-    println!("Answer: {answer}");
 }
 
 fn add<T,R>(x: T, y: T) -> R
@@ -51,16 +69,26 @@ fn sub<T,R>(x: T, y: T) -> R
     x - y
 }
 
+fn read() -> String {
+    let mut buffer = String::new();
+    print!("$ ");
+    std::io::stdout().flush().unwrap();
+    std::io::stdin()
+        .read_line(&mut buffer)
+        .unwrap();
+    buffer
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn it_adds() {
-        const EXPECTED: Output = 0;
+        const EXPECTED: Output = 0.;
 
-        let x: Input= 25;
-        let y: Input = 25;
+        let x: Input= 25.;
+        let y: Input = 25.;
         
         let actual = add(x, y);
 
@@ -69,10 +97,10 @@ mod test {
 
     #[test]
     fn it_subs() {
-        const EXPECTED: Output = -50;
+        const EXPECTED: Output = -50.;
 
-        let x: Input = -25;
-        let y: Input = 25;
+        let x: Input = -25.;
+        let y: Input = 25.;
 
         let actual = sub(x, y);
 
